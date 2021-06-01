@@ -8,25 +8,22 @@ import kotlin.io.path.readBytes
 import kotlin.text.Charsets.UTF_8
 
 class CatFile(private val option: String, private val hash: String) : GitCommand {
-    override fun execute() {
+    override fun execute(): String {
         val content = Path(".git", "objects", hash.substring(0, 2), hash.substring(2)).readBytes()
-        decompress(content)
-            .let {
-                val type = it.substringBefore(' ')
-                val contentSize = it.substringAfter(' ').substringBefore('\u0000')
-                val prettyPrinted = it.substring(it.indexOf('\u0000') + 1)
-                if (contentSize.toInt() != prettyPrinted.length) {
-                    throw RuntimeException()
-                }
-                when (option) {
-                    "-e" -> return // malformed or not
-                    "-t" -> type // type
-                    "-s" -> contentSize // size
-                    "-p" -> prettyPrinted // pretty-printed
-                    else -> throw RuntimeException()
-                }
-            }
-            .also { println(it) }
+        val decompressed = decompress(content)
+        val type = decompressed.substringBefore(' ')
+        val contentSize = decompressed.substringAfter(' ').substringBefore('\u0000')
+        val prettyPrinted = decompressed.substring(decompressed.indexOf('\u0000') + 1)
+        if (contentSize.toInt() != prettyPrinted.length) {
+            throw RuntimeException()
+        }
+        return when (option) {
+            "-e" -> "" // malformed or not
+            "-t" -> type
+            "-s" -> contentSize
+            "-p" -> prettyPrinted
+            else -> throw RuntimeException()
+        }
     }
 
     private fun decompress(compressed: ByteArray): String =
