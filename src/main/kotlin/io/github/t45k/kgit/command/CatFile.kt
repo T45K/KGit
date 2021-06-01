@@ -27,18 +27,18 @@ class CatFile(private val option: String, private val hash: String) : GitCommand
     }
 
     private fun decompress(compressed: ByteArray): String =
-        Inflater()
-            .also { it.setInput(compressed) }
-            .let { inflater ->
-                val buffer = ByteArray(1024)
-                val outputStream = ByteArrayOutputStream()
+        ByteArrayOutputStream().use { outputStream ->
+            val buffer = ByteArray(1024)
+            Inflater()
+                .also { it.setInput(compressed) }
+                .also { inflater ->
+                    while (!inflater.finished()) {
+                        val length = inflater.inflate(buffer)
+                        outputStream.write(buffer, 0, length)
+                    }
 
-                while (!inflater.finished()) {
-                    val length = inflater.inflate(buffer)
-                    outputStream.write(buffer, 0, length)
+                    inflater.end()
                 }
-
-                inflater.end()
-                outputStream.also { it.close() }
-            }.toString(UTF_8)
+            outputStream
+        }.toString(UTF_8)
 }
