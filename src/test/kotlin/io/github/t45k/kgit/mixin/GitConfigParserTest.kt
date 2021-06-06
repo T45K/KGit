@@ -1,7 +1,5 @@
 package io.github.t45k.kgit.mixin
 
-import io.github.t45k.kgit.entity.GitRepository
-import org.junit.jupiter.api.assertThrows
 import java.io.File
 import java.nio.file.Path
 import kotlin.io.path.createDirectory
