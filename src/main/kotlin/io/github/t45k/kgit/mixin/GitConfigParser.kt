@@ -3,10 +3,10 @@ package io.github.t45k.kgit.mixin
 import java.nio.file.Path
 import kotlin.io.path.readLines
 
-interface INIParser {
-    fun parseINI(path: Path): GitConfig = parseINI(path.readLines())
+interface GitConfigParser {
+    fun parseConfigFile(path: Path): GitConfig = parseConfigFile(path.readLines())
 
-    fun parseINI(lines: List<String>): GitConfig =
+    fun parseConfigFile(lines: List<String>): GitConfig =
         extractHeaders(lines)
             .let { headers ->
                 headers.mapIndexed { index, header ->

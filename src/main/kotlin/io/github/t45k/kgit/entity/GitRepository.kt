@@ -1,19 +1,32 @@
 package io.github.t45k.kgit.entity
 
 import io.github.t45k.kgit.mixin.GitConfig
-import io.github.t45k.kgit.mixin.INIParser
+import io.github.t45k.kgit.mixin.GitConfigParser
 import java.nio.file.Path
 import kotlin.io.path.exists
 import kotlin.io.path.notExists
 
-class GitRepository : INIParser {
+class GitRepository private constructor(path: Path) : GitConfigParser {
     private val worktree: Path
     private val gitDir: Path
     private val config: GitConfig
 
-    constructor(path: Path, isInit: Boolean = false) {
+    companion object {
+        fun of(path: Path): GitRepository =
+            if (path.resolve(".git").exists()) {
+                GitRepository(path)
+            } else {
+                of(path.parent ?: throw RuntimeException("Not a Git repository"))
+            }
+
+        fun init(path: Path): GitRepository {
+            TODO()
+        }
+    }
+
+    init {
         // read git repo
-        if (!isInit && !path.resolve(".git").exists()) {
+        if (path.resolve(".git").notExists()) {
             throw RuntimeException("Not a Git repository $path")
         }
         worktree = path
@@ -23,12 +36,10 @@ class GitRepository : INIParser {
         if (gitDir.resolve("config").notExists()) {
             throw java.lang.RuntimeException("Configuration file missing")
         }
-        config = parseINI(gitDir.resolve("config"))
+        config = parseConfigFile(gitDir.resolve("config"))
 
-        if (!isInit) {
-            config["core"]?.get("repositoryformatversion")?.toInt()
-                ?.takeIf { it == 0 }
-                ?: throw RuntimeException("Unsupported repositoryformatversion")
-        }
+        config["core"]?.get("repositoryformatversion")?.toInt()
+            ?.takeIf { it == 0 }
+            ?: throw RuntimeException("Unsupported repositoryformatversion")
     }
 }
