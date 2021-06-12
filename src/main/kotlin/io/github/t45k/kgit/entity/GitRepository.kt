@@ -4,6 +4,8 @@ import io.github.t45k.kgit.mixin.GitConfig
 import io.github.t45k.kgit.mixin.GitConfigParser
 import java.nio.file.Path
 import kotlin.io.path.exists
+import kotlin.io.path.listDirectoryEntries
+import kotlin.io.path.name
 import kotlin.io.path.notExists
 
 class GitRepository private constructor(path: Path) : GitConfigParser {
@@ -42,4 +44,12 @@ class GitRepository private constructor(path: Path) : GitConfigParser {
             ?.takeIf { it == 0 }
             ?: throw RuntimeException("Unsupported repositoryformatversion")
     }
+
+    fun resolvePathFromGitDir(vararg str: String, path: Path = gitDir): Path =
+        if (str.size == 1) {
+            path.listDirectoryEntries()
+                .first { it.name.startsWith(str[0]) }
+        } else {
+            resolvePathFromGitDir(*str.sliceArray(1 until str.size), path = path.resolve(str[0]))
+        }
 }

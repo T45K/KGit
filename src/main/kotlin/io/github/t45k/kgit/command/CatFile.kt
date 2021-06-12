@@ -1,19 +1,16 @@
 package io.github.t45k.kgit.command
 
-import java.io.ByteArrayOutputStream
-import java.lang.RuntimeException
-import java.util.zip.Inflater
-import kotlin.io.path.Path
+import io.github.t45k.kgit.entity.GitRepository
+import io.github.t45k.kgit.mixin.Zlib
 import kotlin.io.path.readBytes
-import kotlin.text.Charsets.UTF_8
 
-class CatFile(private val option: String, private val hash: String) : GitCommand {
+class CatFile(repo: GitRepository, private val option: String, private val hash: String) : GitCommand(repo), Zlib {
     override fun execute(): String {
-        val content = Path(".git", "objects", hash.substring(0, 2), hash.substring(2)).readBytes()
+        val content = repo.resolvePathFromGitDir("objects", hash.substring(0, 2), hash.substring(2)).readBytes()
         val decompressed = decompress(content)
         val type = decompressed.substringBefore(' ')
         val contentSize = decompressed.substringAfter(' ').substringBefore('\u0000')
-        val prettyPrinted = decompressed.substring(decompressed.indexOf('\u0000') + 1)
+        val prettyPrinted = decompressed.substringAfter('\u0000')
         if (contentSize.toInt() != prettyPrinted.length) {
             throw RuntimeException()
         }
@@ -25,20 +22,4 @@ class CatFile(private val option: String, private val hash: String) : GitCommand
             else -> throw RuntimeException()
         }
     }
-
-    private fun decompress(compressed: ByteArray): String =
-        ByteArrayOutputStream().use { outputStream ->
-            val buffer = ByteArray(1024)
-            Inflater()
-                .also { it.setInput(compressed) }
-                .also { inflater ->
-                    while (!inflater.finished()) {
-                        val length = inflater.inflate(buffer)
-                        outputStream.write(buffer, 0, length)
-                    }
-
-                    inflater.end()
-                }
-            outputStream
-        }.toString(UTF_8)
 }

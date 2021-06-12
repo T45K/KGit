@@ -1,5 +1,7 @@
 package io.github.t45k.kgit.command
 
-interface GitCommand {
-    fun execute() :String
+import io.github.t45k.kgit.entity.GitRepository
+
+sealed class GitCommand(protected val repo: GitRepository) {
+    abstract fun execute(): String
 }

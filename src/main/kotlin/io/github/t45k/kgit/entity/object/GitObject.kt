@@ -3,7 +3,7 @@ package io.github.t45k.kgit.entity.`object`
 import io.github.t45k.kgit.entity.GitRepository
 
 sealed class GitObject(protected val repo: GitRepository) {
-    abstract fun serialize()
+    abstract fun serialize():String
     abstract fun deserialize()
 }
 
